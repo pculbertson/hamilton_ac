@@ -1,14 +1,35 @@
 import numpy as np
 from numpy import sin, cos
-from geometry_msgs.msg import Twist,Vector3
+from geometry_msgs.msg import Twist,Vector3,PoseStamped
+from hamilton_ac.msg import Reference
 
 class AdaptiveController():
     #implements adaptive controller for ouijabot in 2D manipulation
     #a = [m,J,m*rpx,m*rpy,u1,u1*rix,u1*riy,u1*||ri||,rix,riy]
     def __init__(self):
-        ## TODO:
-        self.pos_elems = [0,1,4,7]
-        pass
+        self.q, self.q_des = np.zeros(3), np.zeros(3)
+        self.dq, self.dq_des = np.zeros(3), np.zeros(3)
+        self.ddq_des = np.zeros(3)
+        self.q_prev = np.zeros(3) #used for backwards difference
+
+        self.tau, self.F = np.zeros(3), np.zeros(3)
+        self.a_hat = np.zeros(10)
+
+        self.L = rospy.get_param('/ac/L')*np.eye(3)
+        self.Kd = rospy.get_param('/ac/Kd')*np.eye(3)
+        self.Gamma = rospy.get_param('/ac/Gamma')*np.eye(3)
+        self.pos_elems = [0,1,4,7] #flags which elements to project to >0
+        self.q_filt = rospy.get_param('/ac/q_filt')
+        self.dq_filt = rospy.get_param('/ac/dq_filt')
+
+        self.cmd_pub = rospy.Publisher('cmd_wrench',Twist)
+        self.state_sub = rospy.Subscriber('/ac/state',PoseStamped,
+            self.stateCallback)
+
+        self.ref_sub = rospy.Subscriber('/ac/ref',Reference,self.refCallback)
+        self.cmd_timer = rospy.Timer(rospy.Duration(0.1),
+            self.controllerCallback)
+
 
     def controllerCallback(self,event):
         """defines a timer callback to implement controller"""
@@ -40,12 +61,26 @@ class AdaptiveController():
         self.a_hat[self.pos_elems] = np.maximum(self.a_hat[self.pos_elems],0.)
 
     def stateCallback(self,data):
-        ##TODO: measurement callback from Optitrack
-        pass
+        '''handles measurement callback from Optitrack'''
+        if self.state_time == -1:
+            self.state_time = data.header.stamp.to_sec()
+        else:
+            dt = data.header.stamp.to_sec() - self.state_time
+            th = quaternion_to_angle(data.orientation)
+            q_new = np.array([data.position.x,data.position.y,th])
+            q_smoothed = (1-self.q_filt)*q_new + self.q_filt*self.q
+
+            dq_new = (3*q_smoothed - 4*self.q + self.q_prev)/(2*dt)
+
+            self.q_prev = self.q
+            self.q = q_smoothed
+            self.dq = (1-self.dq_filt)*dq_new + self.dq_filt*self.dq
+            self.state_time= data.header.stamp.to_sec()
 
     def refCallback(self,data):
-        ##TODO: reference callback (joystick or planned trajectory)
-        pass
+        self.q_des = np.array([data.q.x,data.q.y,data.q.z])
+        self.dq_des = np.array([data.dq.x,data.dq.y,data.dq.z])
+        self.ddq_des = np.array([data.ddq.x,data.ddq.y,data.ddq.z])
 
     def Mhat_inv(self):
         """defines correction term for moment arms in control law"""
@@ -81,10 +116,21 @@ class AdaptiveController():
             [-(sin(th)*Fx+cos(th)*Fy),cos(th)*Fx-sin(th)*Fy]])
         return np.concatenate((np.zeros((3,8)),block),axis=1)
 
+def quaternion_to_angle(quaternion):
+    #assuming the axis is always standing straight up
+    # TODO: check this is actually correct!
+    return 2*np.arccos(quaternion.w)
 
 
 def main():
-
+    rospy.init_node('hamilton_ac')
+    try:
+        AdaptiveController()
+        rospy.logwarn('starting ac')
+        rospy.spin()
+    except rospy.ROSException as e:
+        rospy.logwarn('closing ac')
+        raise e
 
 if __name__ == '__main__':
     main()
