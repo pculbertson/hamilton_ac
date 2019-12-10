@@ -22,6 +22,8 @@ class AdaptiveController():
         self.pos_elems = [0,1,4,7] #flags which elements to project to >0
         self.q_filt = rospy.get_param('/ac/q_filt')
         self.dq_filt = rospy.get_param('/ac/dq_filt')
+        self.offset_angle = rospy.get_param('offset_angle','0.') #angle offset
+            #from payload frame, default to zero
 
         self.cmd_pub = rospy.Publisher('cmd_wrench',Twist)
         self.state_sub = rospy.Subscriber('/ac/state',PoseStamped,
@@ -43,11 +45,14 @@ class AdaptiveController():
         ddq_r = self.ddq_des - self.L@dq_err
 
         #control law
-        self.F = self.Y() @ self.a_hat - self.Kd @ s
-        self.tau = self.Mhat_inv() @ self.F
+        self.F = self.Y() @ self.a_hat - self.Kd @ s #world frame
+        self.tau = self.Mhat_inv() @ self.F #world frame
 
-        lin_cmd = Vector3(x=self.F[0],y=self.F[1],z=0.)
-        ang_cmd = Vector3(x=0.,y=0.,z=self.F[2])
+        rot_mat = world_to_body(self.q[-1]+self.offset_angle)
+        self.tau_body = rot_mat @ self.tau
+
+        lin_cmd = Vector3(x=self.tau_body[0],y=self.tau_body[1],z=0.)
+        ang_cmd = Vector3(x=0.,y=0.,z=self.tau_body[2])
         cmd_msg = Twist(linear=lin_cmd,angular=ang_cmd)
         self.cmd_pub.publish(cmd_msg)
 
@@ -55,7 +60,7 @@ class AdaptiveController():
         if np.linalg.norm > self.deadband:
             param_derivative = self.Gamma @ (self.Y()+self.Z()).T @ s
             self.a_hat = self.a_hat - dt*(param_derivative)
-            '''TODO: implement Heun's method for integration;
+            '''#TODO(Preston): implement Heun's method for integration;
                 do projection step here & finish w/next value of s above.'''
 
         #projection step:
@@ -119,9 +124,13 @@ class AdaptiveController():
 
 def quaternion_to_angle(quaternion):
     #assuming the axis is always standing straight up
-    # TODO: check this is actually correct!
+    # TODO(Preston): check this is actually correct!
     return 2*np.arccos(quaternion.w)
 
+def world_to_body(angle):
+    """returns world-to-body rotation matrix"""
+    return np.array([cos(angle),-sin(angle),0.],[sin(angle),cos(angle),0.],
+        [0.,0.,1.])
 
 def main():
     rospy.init_node('hamilton_ac')
