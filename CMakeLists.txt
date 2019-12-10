@@ -162,6 +162,7 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
  install(PROGRAMS
    script/controller.py
+   script/circle_ref.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 
