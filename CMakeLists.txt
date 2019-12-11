@@ -163,6 +163,9 @@ include_directories(
  install(PROGRAMS
    script/controller.py
    script/circle_ref.py
+   script/joy_active.py
+   script/joy_ref.py
+   script/force_global.py
    DESTINATION ${CATKIN_PACKAGE_BIN_DESTINATION}
  )
 

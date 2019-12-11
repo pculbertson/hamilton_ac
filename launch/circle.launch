@@ -1,0 +1,11 @@
+<launch>
+    <node name="ref_node" pkg="hamilton_ac" type="circle_ref.py" output="screen">
+        <param name="R" value="1.0"/>
+        <param name="T" value="10.0"/>
+        <param name="c_x" value="0.0"/>
+        <param name="c_y" value="0.0"/>
+        <param name="rot" value="false"/>
+        <param name="max_angle" value="1.57"/>
+        <param name="pub_freq" value="10."/>
+    </node>
+</launch>

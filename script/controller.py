@@ -26,7 +26,7 @@ class AdaptiveController():
             #from payload frame, default to zero
 
         self.cmd_pub = rospy.Publisher('cmd_wrench',Twist)
-        self.state_sub = rospy.Subscriber('/ac/state',PoseStamped,
+        self.state_sub = rospy.Subscriber('state',PoseStamped,
             self.stateCallback)
 
         self.ref_sub = rospy.Subscriber('/ac/ref',Reference,self.refCallback)

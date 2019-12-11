@@ -9,14 +9,14 @@ class CircleRef():
     def __init__(self):
         self.active = False
         self.start_time = -1.
-        self.R = rospy.get_param('/ref/R')
-        self.T = rospy.get_param('/ref/T')
-        self.c_x = rospy.get_param('/ref/c_x')
-        self.c_y = rospy.get_param('/ref/c_y')
+        self.R = rospy.get_param('~R')
+        self.T = rospy.get_param('~T')
+        self.c_x = rospy.get_param('~c_x')
+        self.c_y = rospy.get_param('~c_y')
         self.c = np.array([self.c_x,self.c_y])
-        self.rot = rospy.get_param('/ref/rot')
-        self.max_angle = rospy.get_param('/ref/max_angle')
-        self.pub_freq = rospy.get_param('/ref/pub_freq')
+        self.rot = rospy.get_param('~rot')
+        self.max_angle = rospy.get_param('~max_angle')
+        self.pub_freq = rospy.get_param('~pub_freq')
         self.w = 2*np.pi/self.T
 
         self.ref_timer = rospy.Timer(rospy.Duration(1/self.pub_freq),self.ref_callback)
