@@ -1,0 +1,8 @@
+<launch>
+    <group ns="$(env HOSTNAME)">
+	<remap from="state" to="/vrpn_client_node/payload/pose" />
+        <node name="force_global" pkg="hamilton_ac" type="force_global.py" output="screen">
+        </node>
+    </group>
+    <include file="$(find ouijabot)/launch/force_control.launch" />
+</launch>
