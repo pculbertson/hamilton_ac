@@ -66,11 +66,10 @@ class AdaptiveController():
         self.F = self.Y() @ self.a_hat - self.Kd @ s #world frame
         self.tau = self.Mhat_inv() @ self.F #world frame
 
-        rot_mat = world_to_body(self.q[-1]+self.offset_angle)
-        self.tau_body = rot_mat @ self.tau
+        #publish command in world frame; use force_global to rotate
 
-        lin_cmd = Vector3(x=self.tau_body[0],y=self.tau_body[1],z=0.)
-        ang_cmd = Vector3(x=0.,y=0.,z=self.tau_body[2])
+        lin_cmd = Vector3(x=self.tau[0],y=self.tau[1],z=0.)
+        ang_cmd = Vector3(x=0.,y=0.,z=self.tau[2])
         cmd_msg = Twist(linear=lin_cmd,angular=ang_cmd)
         self.cmd_pub.publish(cmd_msg)
 
@@ -78,8 +77,8 @@ class AdaptiveController():
         if np.linalg.norm > self.deadband:
             param_derivative = self.Gamma @ (self.Y()+self.Z()).T @ s
             self.a_hat = self.a_hat - dt*(param_derivative)
-            '''#TODO(Preston): implement Heun's method for integration;
-                do projection step here & finish w/next value of s above.'''
+            # TODO: (Preston): implement Heun's method for integration;
+                #do projection step here & finish w/next value of s above.
 
         #projection step:
         self.a_hat[self.pos_elems] = np.maximum(self.a_hat[self.pos_elems],0.)
@@ -140,15 +139,11 @@ class AdaptiveController():
             [-(sin(th)*Fx+cos(th)*Fy),cos(th)*Fx-sin(th)*Fy]])
         return np.concatenate((np.zeros((3,8)),block),axis=1)
 
-def quaternion_to_angle(quaternion):
-    #assuming the axis is always standing straight up
-    # TODO(Preston): check this is actually correct!
-    return 2*np.arccos(quaternion.w)
-
-def world_to_body(angle):
-    """returns world-to-body rotation matrix"""
-    return np.array([cos(angle),-sin(angle),0.],[sin(angle),cos(angle),0.],
-        [0.,0.,1.])
+def quaternion_to_angle(q):
+    """transforms quaternion to body angle in plane"""
+    cos_th = 2*(q.x**2 + q.w**2)-1
+    sin_th = -2*(q.x*q.y - q.z*q.w)
+    return np.arctan2(sin_th,cos_th)
 
 def main():
     rospy.init_node('hamilton_ac')
