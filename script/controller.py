@@ -8,14 +8,30 @@ class AdaptiveController():
     #implements adaptive controller for ouijabot in 2D manipulation
     #a = [m,J,m*rpx,m*rpy,u1,u1*rix,u1*riy,u1*||ri||,rix,riy]
     def __init__(self):
-        self.q, self.q_des = np.zeros(3), np.zeros(3)
-        self.dq, self.dq_des = np.zeros(3), np.zeros(3)
+        self.getParams()
+        self.active = False
+        self.controllerReset()
+        self.q_des, self.dq_des = np.zeros(3), np.zeros(3)
         self.ddq_des = np.zeros(3)
-        self.q_prev = np.zeros(3) #used for backwards difference
 
+        self.cmd_pub = rospy.Publisher('cmd_wrench',Twist)
+        self.state_sub = rospy.Subscriber('state',PoseStamped,
+            self.stateCallback)
+
+        self.ref_sub = rospy.Subscriber('/ac/ref',Reference,self.refCallback)
+        self.cmd_timer = rospy.Timer(rospy.Duration(0.1),
+            self.controllerCallback)
+        self.active_sub = rospy.Subscriber('/ac/active', Bool, self.activeCallback)
+
+
+    def controllerReset(self):
+        self.q = np.zeros(3)
+        self.dq = np.zeros(3)
+        self.q_prev = np.zeros(3) #used for backwards difference
         self.tau, self.F = np.zeros(3), np.zeros(3)
         self.a_hat = np.zeros(10)
 
+    def getParams(self):
         self.L = rospy.get_param('/ac/L')*np.eye(3)
         self.Kd = rospy.get_param('/ac/Kd')*np.eye(3)
         self.Gamma = rospy.get_param('/ac/Gamma')*np.eye(3)
@@ -25,18 +41,20 @@ class AdaptiveController():
         self.offset_angle = rospy.get_param('offset_angle','0.') #angle offset
             #from payload frame, default to zero
 
-        self.cmd_pub = rospy.Publisher('cmd_wrench',Twist)
-        self.state_sub = rospy.Subscriber('state',PoseStamped,
-            self.stateCallback)
+    def activeCallback(self,msg):
+        if not self.active and msg.data:
+            self.getParams()
+        else if self.active and not msg.data:
+            self.controllerReset()
 
-        self.ref_sub = rospy.Subscriber('/ac/ref',Reference,self.refCallback)
-        self.cmd_timer = rospy.Timer(rospy.Duration(0.1),
-            self.controllerCallback)
-
+        self.active = msg.data
 
     def controllerCallback(self,event):
         """defines a timer callback to implement controller"""
         #define dynamics terms
+        if not self.active:
+            return
+
         dt = event.current_real - event.last_real
         q_err = self.q - self.q_des
         dq_err = self.dq - self.dq_des
