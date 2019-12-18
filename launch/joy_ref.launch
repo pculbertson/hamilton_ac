@@ -23,5 +23,4 @@
     <param name="/ouijabot5/offset_angle" value="-0.52" />
     <param name="/ouijabot6/offset_angle" value="-0.52" />
 
-    <!-- ADD OFFSET ANGLES HERE />
 </launch>
