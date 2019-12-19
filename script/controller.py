@@ -44,7 +44,7 @@ class AdaptiveController():
     def activeCallback(self,msg):
         if not self.active and msg.data:
             self.getParams()
-        else if self.active and not msg.data:
+        elif self.active and not msg.data:
             self.controllerReset()
 
         self.active = msg.data
