@@ -2,7 +2,9 @@
 import numpy as np
 from numpy import sin, cos
 from geometry_msgs.msg import Twist,Vector3,PoseStamped
+from std_msgs.msg import Bool
 from hamilton_ac.msg import Reference
+import rospy
 
 class AdaptiveController():
     #implements adaptive controller for ouijabot in 2D manipulation
@@ -14,7 +16,7 @@ class AdaptiveController():
         self.q_des, self.dq_des = np.zeros(3), np.zeros(3)
         self.ddq_des = np.zeros(3)
 
-        self.cmd_pub = rospy.Publisher('cmd_wrench',Twist)
+        self.cmd_pub = rospy.Publisher('cmd_wrench',Twist,queue_size=1)
         self.state_sub = rospy.Subscriber('state',PoseStamped,
             self.stateCallback)
 
@@ -34,8 +36,9 @@ class AdaptiveController():
     def getParams(self):
         self.L = rospy.get_param('/ac/L')*np.eye(3)
         self.Kd = rospy.get_param('/ac/Kd')*np.eye(3)
-        self.Gamma = rospy.get_param('/ac/Gamma')*np.eye(3)
+        self.Gamma = rospy.get_param('/ac/Gamma')*np.eye(10)
         self.pos_elems = [0,1,4,7] #flags which elements to project to >0
+        self.deadband = rospy.get_param('/ac/deadband')
         self.q_filt = rospy.get_param('/ac/q_filt')
         self.dq_filt = rospy.get_param('/ac/dq_filt')
         self.offset_angle = rospy.get_param('offset_angle','0.') #angle offset
@@ -55,7 +58,7 @@ class AdaptiveController():
         if not self.active:
             return
 
-        dt = event.current_real - event.last_real
+        dt = event.current_real.to_sec() - event.last_real.to_sec()
         q_err = self.q - self.q_des
         dq_err = self.dq - self.dq_des
         s = dq_err + self.L@dq_err
@@ -74,7 +77,7 @@ class AdaptiveController():
         self.cmd_pub.publish(cmd_msg)
 
         #adaptation law:
-        if np.linalg.norm > self.deadband:
+        if np.linalg.norm(s) > self.deadband:
             param_derivative = self.Gamma @ (self.Y()+self.Z()).T @ s
             self.a_hat = self.a_hat - dt*(param_derivative)
             # TODO: (Preston): implement Heun's method for integration;
@@ -101,9 +104,9 @@ class AdaptiveController():
             self.state_time= data.header.stamp.to_sec()
 
     def refCallback(self,data):
-        self.q_des = np.array([data.q.x,data.q.y,data.q.z])
-        self.dq_des = np.array([data.dq.x,data.dq.y,data.dq.z])
-        self.ddq_des = np.array([data.ddq.x,data.ddq.y,data.ddq.z])
+        self.q_des = np.array([data.q_des.x,data.q_des.y,data.q_des.z])
+        self.dq_des = np.array([data.dq_des.x,data.dq_des.y,data.dq_des.z])
+        self.ddq_des = np.array([data.ddq_des.x,data.ddq_des.y,data.ddq_des.z])
 
     def Mhat_inv(self):
         """defines correction term for moment arms in control law"""
@@ -113,14 +116,14 @@ class AdaptiveController():
         rhx_n = rhx*cos(th)+rhy*sin(th)
         rhy_n = -rhx*sin(th)+rhy*cos(th)
 
-        return np.array([[1,0,0],[0,1,0],[rhy_n,-rhx_n,1])
+        return np.array([[1,0,0],[0,1,0],[rhy_n,-rhx_n,1]])
 
     def Y(self):
         """Y*a = H*ddqr + (C+D)dqr"""
         x, y, th = self.q
         dx, dy, dth = self.dq
-        dxr, dyr, dthr = self.dqr
-        ddxr, ddyr, ddthr = self.ddqr
+        dxr, dyr, dthr = self.dq_des
+        ddxr, ddyr, ddthr = self.ddq_des
         block1h = np.array([[ddxr,0,-sin(th)*ddthr, cos(th)*ddthr],
             [ddyr,0,-cos(th)*ddthr,-sin(th)*ddthr],
             [0,ddthr,-sin(th)*ddxr-cos(th)*ddyr,cos(th)*ddxr-sin(th)*ddyr]])

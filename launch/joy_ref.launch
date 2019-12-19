@@ -15,6 +15,7 @@
     <param name="/ac/Gamma" value="0.1" />
     <param name="/ac/q_filt" value="0.95" />
     <param name="/ac/dq_filt" value="0.95" />
+    <param name="/ac/deadband" value="0.01" />
 
     <param name="/ouijabot1/offset_angle" value="-1.57" />
     <param name="/ouijabot2/offset_angle" value="3.14" />
