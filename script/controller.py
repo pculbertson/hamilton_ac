@@ -15,6 +15,7 @@ class AdaptiveController():
         self.controllerReset()
         self.q_des, self.dq_des = np.zeros(3), np.zeros(3)
         self.ddq_des = np.zeros(3)
+        self.state_time = -1
 
         self.cmd_pub = rospy.Publisher('cmd_wrench',Twist,queue_size=1)
         self.state_sub = rospy.Subscriber('state',PoseStamped,
@@ -24,6 +25,7 @@ class AdaptiveController():
         self.cmd_timer = rospy.Timer(rospy.Duration(0.1),
             self.controllerCallback)
         self.active_sub = rospy.Subscriber('/ac/active', Bool, self.activeCallback)
+        self.state_pub = rospy.Publisher('state_est',Reference,queue_size=1)
 
 
     def controllerReset(self):
@@ -82,9 +84,13 @@ class AdaptiveController():
             self.a_hat = self.a_hat - dt*(param_derivative)
             # TODO: (Preston): implement Heun's method for integration;
                 #do projection step here & finish w/next value of s above.
+        print(self.a_hat)
 
         #projection step:
         self.a_hat[self.pos_elems] = np.maximum(self.a_hat[self.pos_elems],0.)
+
+        msg = Reference(Vector3(*self.q),Vector3(*self.dq),Vector3())
+        self.state_pub.publish(msg)
 
     def stateCallback(self,data):
         '''handles measurement callback from Optitrack'''
@@ -92,8 +98,8 @@ class AdaptiveController():
             self.state_time = data.header.stamp.to_sec()
         else:
             dt = data.header.stamp.to_sec() - self.state_time
-            th = quaternion_to_angle(data.orientation)
-            q_new = np.array([data.position.x,data.position.y,th])
+            th = quaternion_to_angle(data.pose.orientation)
+            q_new = np.array([data.pose.position.x,data.pose.position.y,th])
             q_smoothed = (1-self.q_filt)*q_new + self.q_filt*self.q
 
             dq_new = (3*q_smoothed - 4*self.q + self.q_prev)/(2*dt)

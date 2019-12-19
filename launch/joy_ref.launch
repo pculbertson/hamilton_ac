@@ -1,6 +1,7 @@
 <launch>
     <node name="joystick" pkg="joy" type="joy_node" output="screen" />
     <node name="joy_active" pkg="hamilton_ac" type="joy_active.py" output="screen" />
+    <include file="$(find vrpn_client_ros)/launch/optitrack.launch" />
     <node name="ref_node" pkg="hamilton_ac" type="joy_ref.py" output="screen">
         <param name="max_lin_vel" value="1.0"/>
         <param name="max_ang_vel" value="1.0"/>
