@@ -18,7 +18,7 @@ class AdaptiveController():
         self.ddq_des = np.zeros(3)
         self.state_time = -1
 
-        self.cmd_pub = rospy.Publisher('cmd_wrench',Twist,queue_size=1)
+        self.cmd_pub = rospy.Publisher('cmd_global',Twist,queue_size=1)
         self.state_sub = rospy.Subscriber('state',PoseStamped,
             self.stateCallback)
 
@@ -69,7 +69,6 @@ class AdaptiveController():
             #control law
             self.F = self.Y() @ self.a_hat - self.Kd @ s #world frame
             self.tau = self.Mhat_inv() @ self.F #world frame
-
 
             #adaptation law:
             if np.linalg.norm(s) > self.deadband:
