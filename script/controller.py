@@ -13,6 +13,7 @@ class AdaptiveController():
         self.getParams()
         self.active = False
         self.controllerReset()
+        self.q = self.q_prev = np.zeros(3)
         self.q_des, self.dq_des = np.zeros(3), np.zeros(3)
         self.ddq_des = np.zeros(3)
         self.state_time = -1
@@ -26,7 +27,6 @@ class AdaptiveController():
             self.controllerCallback)
         self.active_sub = rospy.Subscriber('/ac/active', Bool, self.activeCallback)
         self.state_pub = rospy.Publisher('state_est',Reference,queue_size=1)
-        self.q = self.q_prev = np.zeros(3)
 
     def controllerReset(self):
         self.dq = np.zeros(3)
