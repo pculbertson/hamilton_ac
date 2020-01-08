@@ -17,7 +17,7 @@ class ForceGlobal():
 	self.state_sub = rospy.Subscriber('state',PoseStamped,
             self.stateCallback)
 
-        self.wrench_sub = rospy.Subscriber('/fc/cmd_wrench',Twist,self.refCallback)
+        self.wrench_sub = rospy.Subscriber('/fc/cmd_global',Twist,self.refCallback)
         self.cmd_timer = rospy.Timer(rospy.Duration(0.1),
             self.controllerCallback)
 

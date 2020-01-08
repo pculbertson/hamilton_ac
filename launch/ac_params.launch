@@ -1,7 +1,7 @@
 <launch>
     <param name="use_sim_time" value="false"/>
     <param name="/ac/L" value="0.0" />
-    <param name="/ac/Kd_lin" value="15.0" />
+    <param name="/ac/Kd_lin" value="10.0" />
     <param name="/ac/Kd_ang" value="5.0" />
     <param name="/ac/Gamma" value="0.0" />
     <param name="/ac/q_filt" value="0.99" />

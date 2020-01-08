@@ -62,7 +62,7 @@ class AdaptiveController():
             dt = event.current_real.to_sec() - event.last_real.to_sec()
             q_err = self.q - self.q_des
             dq_err = self.dq - self.dq_des
-            s = dq_err + self.L@dq_err
+            s = dq_err + self.L@q_err
             dq_r = self.dq_des - self.L@q_err
             ddq_r = self.ddq_des - self.L@dq_err
 
