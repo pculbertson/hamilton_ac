@@ -26,11 +26,10 @@ class AdaptiveController():
             self.controllerCallback)
         self.active_sub = rospy.Subscriber('/ac/active', Bool, self.activeCallback)
         self.state_pub = rospy.Publisher('state_est',Reference,queue_size=1)
+        self.q = self.q_prev = np.zeros(3)
 
     def controllerReset(self):
-        self.q = np.zeros(3)
         self.dq = np.zeros(3)
-        self.q_prev = np.zeros(3) #used for backwards difference
         self.tau, self.F = np.zeros(3), np.zeros(3)
         self.a_hat = np.zeros(10)
 
