@@ -23,10 +23,10 @@ class AdaptiveController():
             self.stateCallback)
 
         self.ref_sub = rospy.Subscriber('/ac/ref',Reference,self.refCallback)
-        self.cmd_timer = rospy.Timer(rospy.Duration(0.1),
-            self.controllerCallback)
         self.active_sub = rospy.Subscriber('/ac/active', Bool, self.activeCallback)
         self.state_pub = rospy.Publisher('state_est',Reference,queue_size=1)
+        self.cmd_timer = rospy.Timer(rospy.Duration(0.1),
+            self.controllerCallback)
 
     def controllerReset(self):
         self.dq = np.zeros(3)
