@@ -27,7 +27,6 @@ class AdaptiveController():
         self.active_sub = rospy.Subscriber('/ac/active', Bool, self.activeCallback)
         self.state_pub = rospy.Publisher('state_est',Reference,queue_size=1)
 
-
     def controllerReset(self):
         self.q = np.zeros(3)
         self.dq = np.zeros(3)
@@ -57,37 +56,35 @@ class AdaptiveController():
     def controllerCallback(self,event):
         """defines a timer callback to implement controller"""
         #define dynamics terms
-        if not self.active:
-            return
 
-        dt = event.current_real.to_sec() - event.last_real.to_sec()
-        q_err = self.q - self.q_des
-        dq_err = self.dq - self.dq_des
-        s = dq_err + self.L@dq_err
-        dq_r = self.dq_des - self.L@q_err
-        ddq_r = self.ddq_des - self.L@dq_err
+        if self.active:
+            dt = event.current_real.to_sec() - event.last_real.to_sec()
+            q_err = self.q - self.q_des
+            dq_err = self.dq - self.dq_des
+            s = dq_err + self.L@dq_err
+            dq_r = self.dq_des - self.L@q_err
+            ddq_r = self.ddq_des - self.L@dq_err
 
-        #control law
-        self.F = self.Y() @ self.a_hat - self.Kd @ s #world frame
-        self.tau = self.Mhat_inv() @ self.F #world frame
+            #control law
+            self.F = self.Y() @ self.a_hat - self.Kd @ s #world frame
+            self.tau = self.Mhat_inv() @ self.F #world frame
+
+
+            #adaptation law:
+            if np.linalg.norm(s) > self.deadband:
+                param_derivative = self.Gamma @ (self.Y()+self.Z()).T @ s
+                self.a_hat = self.a_hat - dt*(param_derivative)
+            # TODO: (Preston): implement Heun's method for integration;
+                #do projection step here & finish w/next value of s above.
+
+                #projection step:
+                self.a_hat[self.pos_elems] = np.maximum(self.a_hat[self.pos_elems],0.)
 
         #publish command in world frame; use force_global to rotate
-
         lin_cmd = Vector3(x=self.tau[0],y=self.tau[1],z=0.)
         ang_cmd = Vector3(x=0.,y=0.,z=self.tau[2])
         cmd_msg = Twist(linear=lin_cmd,angular=ang_cmd)
         self.cmd_pub.publish(cmd_msg)
-
-        #adaptation law:
-        if np.linalg.norm(s) > self.deadband:
-            param_derivative = self.Gamma @ (self.Y()+self.Z()).T @ s
-            self.a_hat = self.a_hat - dt*(param_derivative)
-            # TODO: (Preston): implement Heun's method for integration;
-                #do projection step here & finish w/next value of s above.
-        print(self.a_hat)
-
-        #projection step:
-        self.a_hat[self.pos_elems] = np.maximum(self.a_hat[self.pos_elems],0.)
 
         msg = Reference(Vector3(*self.q),Vector3(*self.dq),Vector3())
         self.state_pub.publish(msg)
