@@ -37,7 +37,7 @@ class AdaptiveController():
         self.L = rospy.get_param('/ac/L')*np.eye(3)
         self.Kd_lin = rospy.get_param('/ac/Kd_lin')
         self.Kd_ang = rospy.get_param('/ac/Kd_ang')
-        self.Kd = np.diag(self.Kd_lin,self.Kd_lin,self.Kd_ang)
+        self.Kd = np.diag([self.Kd_lin,self.Kd_lin,self.Kd_ang])
         self.Gamma = rospy.get_param('/ac/Gamma')*np.eye(10)
         self.pos_elems = [0,1,4,7] #flags which elements to project to >0
         self.deadband = rospy.get_param('/ac/deadband')
