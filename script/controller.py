@@ -101,10 +101,9 @@ class AdaptiveController():
             dt = data.header.stamp.to_sec() - self.state_time
             th = quaternion_to_angle(data.pose.orientation)
             q_new = np.array([data.pose.position.x,data.pose.position.y,th])
+            q_new[2], self.q[2], self.q_prev[2] = self.wrap_angles(
+                q_new[2], self.q[2], self.q_prev[2])
             q_smoothed = (1-self.q_filt)*q_new + self.q_filt*self.q
-
-            q_smoothed[2], self.q[2], self.q_prev[2] = self.wrap_angles(
-                q_smoothed[2], self.q[2], self.q_prev[2])
 
             dq_new = (3*q_smoothed - 4*self.q + self.q_prev)/(2*dt)
 
