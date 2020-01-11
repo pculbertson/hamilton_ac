@@ -103,8 +103,8 @@ class AdaptiveController():
             q_new = np.array([data.pose.position.x,data.pose.position.y,th])
             q_smoothed = (1-self.q_filt)*q_new + self.q_filt*self.q
 
-            q_smoothed, self.q, self.q_prev = wrap_angles(q_smoothed, self.q,
-                self.q_prev)
+            q_smoothed, self.q, self.q_prev = self.wrap_angles(q_smoothed,
+                self.q, self.q_prev)
 
             dq_new = (3*q_smoothed - 4*self.q + self.q_prev)/(2*dt)
 
