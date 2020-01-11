@@ -103,8 +103,8 @@ class AdaptiveController():
             q_new = np.array([data.pose.position.x,data.pose.position.y,th])
             q_smoothed = (1-self.q_filt)*q_new + self.q_filt*self.q
 
-            q_smoothed, self.q, self.q_prev = self.wrap_angles(q_smoothed,
-                self.q, self.q_prev)
+            q_smoothed[2], self.q[2], self.q_prev[2] = self.wrap_angles(
+                q_smoothed[2], self.q[2], self.q_prev[2])
 
             dq_new = (3*q_smoothed - 4*self.q + self.q_prev)/(2*dt)
 
@@ -128,14 +128,14 @@ class AdaptiveController():
 
         return np.array([[1,0,0],[0,1,0],[rhy_n,-rhx_n,1]])
 
-    def wrap_angles(self,q_new,q_curr,q_prev):
-        if abs(q_new - q_curr) >= 2*np.pi - self.wrap_tol:
-            q_curr = q_curr + 2*np.pi if q_new > q_curr else q_curr - 2*np.pi
+    def wrap_angles(self,z_new,z_curr,z_prev):
+        if abs(z_new - z_curr) >= 2*np.pi - self.wrap_tol:
+            z_curr = z_curr + 2*np.pi if z_new > z_curr else z_curr - 2*np.pi
 
-        if abs(q_curr - q_prev) >= 2*np.pi - self.wrap_tol:
-            q_prev = q_prev + 2*np.pi if q_curr > q_prev else q_prev - 2*np.pi
+        if abs(z_curr - z_prev) >= 2*np.pi - self.wrap_tol:
+            z_prev = z_prev + 2*np.pi if z_curr > z_prev else z_prev - 2*np.pi
 
-        return q_new, q_curr, q_prev
+        return z_new, z_curr, z_prev
 
     def Y(self):
         """Y*a = H*ddqr + (C+D)dqr"""
