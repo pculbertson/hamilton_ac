@@ -18,7 +18,7 @@ class AdaptiveController():
         self.ddq_des = np.zeros(3)
         self.state_time = -1
 
-        self.wrap_tol = 0.1
+        self.wrap_tol = 0.25
 
         self.cmd_pub = rospy.Publisher('cmd_global',Twist,queue_size=1)
         self.state_sub = rospy.Subscriber('state',PoseStamped,
@@ -130,10 +130,11 @@ class AdaptiveController():
 
     def wrap_angles(self,z_new,z_curr,z_prev):
         if abs(z_new - z_curr) >= 2*np.pi - self.wrap_tol:
+            print('wrapping!')
             z_curr = z_curr + 2*np.pi if z_new > z_curr else z_curr - 2*np.pi
 
-        if abs(z_curr - z_prev) >= 2*np.pi - self.wrap_tol:
-            z_prev = z_prev + 2*np.pi if z_curr > z_prev else z_prev - 2*np.pi
+        if abs(z_new - z_prev) >= 2*np.pi - self.wrap_tol:
+            z_prev = z_prev + 2*np.pi if z_new > z_prev else z_prev - 2*np.pi
 
         return z_new, z_curr, z_prev
 
