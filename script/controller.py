@@ -18,12 +18,15 @@ class AdaptiveController():
         self.ddq_des = np.zeros(3)
         self.state_time = -1
 
+        self.wrap_tol = 0.1
+
         self.cmd_pub = rospy.Publisher('cmd_global',Twist,queue_size=1)
         self.state_sub = rospy.Subscriber('state',PoseStamped,
             self.stateCallback)
 
         self.ref_sub = rospy.Subscriber('/ac/ref',Reference,self.refCallback)
-        self.active_sub = rospy.Subscriber('/ac/active', Bool, self.activeCallback)
+        self.active_sub = rospy.Subscriber('/ac/active', Bool,
+            self.activeCallback)
         self.state_pub = rospy.Publisher('state_est',Reference,queue_size=1)
         self.cmd_timer = rospy.Timer(rospy.Duration(0.1),
             self.controllerCallback)
@@ -78,7 +81,8 @@ class AdaptiveController():
                 #do projection step here & finish w/next value of s above.
 
                 #projection step:
-                self.a_hat[self.pos_elems] = np.maximum(self.a_hat[self.pos_elems],0.)
+                self.a_hat[self.pos_elems] = np.maximum(
+                    self.a_hat[self.pos_elems],0.)
 
         #publish command in world frame; use force_global to rotate
         lin_cmd = Vector3(x=self.tau[0],y=self.tau[1],z=0.)
@@ -98,6 +102,9 @@ class AdaptiveController():
             th = quaternion_to_angle(data.pose.orientation)
             q_new = np.array([data.pose.position.x,data.pose.position.y,th])
             q_smoothed = (1-self.q_filt)*q_new + self.q_filt*self.q
+
+            q_smoothed, self.q, self.q_prev = wrap_angles(q_smoothed, self.q,
+                self.q_prev)
 
             dq_new = (3*q_smoothed - 4*self.q + self.q_prev)/(2*dt)
 
@@ -120,6 +127,15 @@ class AdaptiveController():
         rhy_n = -rhx*sin(th)+rhy*cos(th)
 
         return np.array([[1,0,0],[0,1,0],[rhy_n,-rhx_n,1]])
+
+    def wrap_angles(q_new,q_curr,q_prev):
+        if abs(q_new - q_curr) >= 2*np.pi - self.wrap_tol:
+            q_curr = q_curr + 2*np.pi if q_new > q_curr else q_curr - 2*np.pi
+
+        if abs(q_curr - q_prev) >= 2*np.pi - self.wrap_tol:
+            q_prev = q_prev + 2*np.pi if q_curr > q_prev else q_prev - 2*np.pi
+
+        return q_new, q_curr, q_prev
 
     def Y(self):
         """Y*a = H*ddqr + (C+D)dqr"""

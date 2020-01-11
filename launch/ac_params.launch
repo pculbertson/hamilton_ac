@@ -3,9 +3,9 @@
     <param name="/ac/L" value="0.0" />
     <param name="/ac/Kd_lin" value="0.75" />
     <param name="/ac/Kd_ang" value="0.5" />
-    <param name="/ac/Gamma" value="0.0005" />
+    <param name="/ac/Gamma" value="0.0001" />
     <param name="/ac/q_filt" value="0.99" />
-    <param name="/ac/dq_filt" value="0.95" />
+    <param name="/ac/dq_filt" value="0.99" />
     <param name="/ac/deadband" value="0.5" />
 
     <param name="/ouijabot1/offset_angle" value="-1.57" />
