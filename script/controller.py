@@ -128,7 +128,7 @@ class AdaptiveController():
 
         return np.array([[1,0,0],[0,1,0],[rhy_n,-rhx_n,1]])
 
-    def wrap_angles(q_new,q_curr,q_prev):
+    def wrap_angles(self,q_new,q_curr,q_prev):
         if abs(q_new - q_curr) >= 2*np.pi - self.wrap_tol:
             q_curr = q_curr + 2*np.pi if q_new > q_curr else q_curr - 2*np.pi
 
