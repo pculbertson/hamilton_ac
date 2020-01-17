@@ -48,9 +48,9 @@ class AdaptiveController():
         self.deadband = rospy.get_param('/ac/deadband')
         self.q_filt = rospy.get_param('/ac/q_filt')
         self.dq_filt = rospy.get_param('/ac/dq_filt')
-        self.offset_angle = rospy.get_param('offset_angle','0.') #angle offset
+        self.offset_angle = rospy.get_param('offset_angle',0.) #angle offset
             #from payload frame, default to zero
-        self.v_max = rospy.get_param('v_max','5.0')
+        self.v_max = rospy.get_param('/ac/v_max',5.0)
 
     def activeCallback(self,msg):
         if not self.active and msg.data:
