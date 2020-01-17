@@ -13,7 +13,7 @@ class AdaptiveController():
         self.getParams()
         self.active = False
         self.controllerReset()
-        self.q = self.q_prev = np.zeros(3)
+        self.q = self.q_prev = self.dq = np.zeros(3)
         self.q_des, self.dq_des = np.zeros(3), np.zeros(3)
         self.ddq_des = np.zeros(3)
         self.state_time = -1
