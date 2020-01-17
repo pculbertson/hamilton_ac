@@ -35,7 +35,6 @@ class AdaptiveController():
             self.controllerCallback)
 
     def controllerReset(self):
-        self.dq = np.zeros(3)
         self.tau, self.F = np.zeros(3), np.zeros(3)
         self.a_hat = np.zeros(10)
 
