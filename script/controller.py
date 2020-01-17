@@ -115,7 +115,8 @@ class AdaptiveController():
                 q_new[2], self.q[2], self.q_prev[2])
             q_smoothed = (1-self.q_filt)*q_new + self.q_filt*self.q
 
-            dq_new = (3*q_smoothed - 4*self.q + self.q_prev)/(2*dt)
+            #dq_new = (3*q_smoothed - 4*self.q + self.q_prev)/(2*dt)
+            dq_new = (q_smoothed - self.q)/dt
 
             self.q_prev = self.q
             self.q = q_smoothed
