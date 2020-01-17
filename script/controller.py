@@ -87,6 +87,10 @@ class AdaptiveController():
                 self.a_hat[self.pos_elems] = np.maximum(
                     self.a_hat[self.pos_elems],0.)
 
+            err_msg = Reference(Vector3(*q_err),Vector3(*dq_err),
+                Vector3(*s)) #use ddq field for s since it's empty otherwise
+            self.err_pub.publish(err_msg)
+
         #publish command in world frame; use force_global to rotate
         lin_cmd = Vector3(x=self.tau[0],y=self.tau[1],z=0.)
         ang_cmd = Vector3(x=0.,y=0.,z=self.tau[2])
@@ -95,10 +99,6 @@ class AdaptiveController():
 
         state_msg = Reference(Vector3(*self.q),Vector3(*self.dq),Vector3())
         self.state_pub.publish(state_msg)
-
-        err_msg = Reference(Vector3(*q_err),Vector3(*dq_err),
-            Vector3(*s)) #use ddq field for s since it's empty otherwise
-        self.err_pub.publish(err_msg)
 
         param_msg = Float64MultiArray()
         param_msg.data = self.a_hat
