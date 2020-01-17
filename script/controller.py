@@ -28,6 +28,7 @@ class AdaptiveController():
         self.active_sub = rospy.Subscriber('/ac/active', Bool,
             self.activeCallback)
         self.state_pub = rospy.Publisher('state_est',Reference,queue_size=1)
+        self.err_pub = rospy.Publisher('err', Reference, queue_size=1)
         self.cmd_timer = rospy.Timer(rospy.Duration(0.1),
             self.controllerCallback)
 
@@ -90,8 +91,12 @@ class AdaptiveController():
         cmd_msg = Twist(linear=lin_cmd,angular=ang_cmd)
         self.cmd_pub.publish(cmd_msg)
 
-        msg = Reference(Vector3(*self.q),Vector3(*self.dq),Vector3())
-        self.state_pub.publish(msg)
+        state_msg = Reference(Vector3(*self.q),Vector3(*self.dq),Vector3())
+        self.state_pub.publish(state_msg)
+
+        err_msg = Reference(Vector3(*q_err),Vector3(*dq_err),
+            Vector3(*s)) #use ddq field for s since it's empty otherwise
+        self.err_pub.publish(err_msg)
 
     def stateCallback(self,data):
         '''handles measurement callback from Optitrack'''

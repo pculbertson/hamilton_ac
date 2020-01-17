@@ -51,7 +51,6 @@ class CircleRef():
         self.ref_pub.publish(msg)
 
     def active_callback(self,msg):
-        print(msg.data)
         if self.active and not msg.data: #turn off
             self.active = False
             self.time = -1.
