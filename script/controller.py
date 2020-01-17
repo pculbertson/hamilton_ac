@@ -102,7 +102,7 @@ class AdaptiveController():
 
         param_msg = Float64MultiArray()
         param_msg.data = self.a_hat
-        self.param_pub.publishe(param_msg)
+        self.param_pub.publish(param_msg)
 
     def stateCallback(self,data):
         '''handles measurement callback from Optitrack'''
