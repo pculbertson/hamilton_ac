@@ -2,7 +2,7 @@
 import numpy as np
 from numpy import sin, cos
 from geometry_msgs.msg import Twist,Vector3,PoseStamped
-from std_msgs.msg import Bool
+from std_msgs.msg import Bool, Float64MultiArray
 from hamilton_ac.msg import Reference
 import rospy
 
@@ -29,6 +29,8 @@ class AdaptiveController():
             self.activeCallback)
         self.state_pub = rospy.Publisher('state_est',Reference,queue_size=1)
         self.err_pub = rospy.Publisher('err', Reference, queue_size=1)
+        self.param_pub = rospy.Publisher('param_est', Float64MultiArray,
+            queue_size=1)
         self.cmd_timer = rospy.Timer(rospy.Duration(0.1),
             self.controllerCallback)
 
@@ -97,6 +99,10 @@ class AdaptiveController():
         err_msg = Reference(Vector3(*q_err),Vector3(*dq_err),
             Vector3(*s)) #use ddq field for s since it's empty otherwise
         self.err_pub.publish(err_msg)
+
+        param_msg = Float64MultiArray()
+        param_msg.data = self.a_hat
+        self.param_pub.publishe(param_msg)
 
     def stateCallback(self,data):
         '''handles measurement callback from Optitrack'''
