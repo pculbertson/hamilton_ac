@@ -50,6 +50,7 @@ class AdaptiveController():
         self.dq_filt = rospy.get_param('/ac/dq_filt')
         self.offset_angle = rospy.get_param('offset_angle','0.') #angle offset
             #from payload frame, default to zero
+        self.v_max = rospy.get_param('v_max','5.0')
 
     def activeCallback(self,msg):
         if not self.active and msg.data:
@@ -115,11 +116,12 @@ class AdaptiveController():
                 q_new[2], self.q[2], self.q_prev[2])
             q_smoothed = (1-self.q_filt)*q_new + self.q_filt*self.q
 
-            #dq_new = (3*q_smoothed - 4*self.q + self.q_prev)/(2*dt)
-            dq_new = (q_new - self.q_prev)/dt
+            dq_new = (3*q_smoothed - 4*self.q + self.q_prev)/(2*dt)
+            dq_new = np.clip(dq_new,-self.v_max,self.v_max)
 
-            #self.q_prev = self.q
-            self.q_prev = q_new
+            #dq_new = (q_new - self.q_prev)/dt
+
+            self.q_prev = self.q
             self.q = q_smoothed
             self.dq = (1-self.dq_filt)*dq_new + self.dq_filt*self.dq
             self.state_time= data.header.stamp.to_sec()
