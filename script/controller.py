@@ -116,9 +116,10 @@ class AdaptiveController():
             q_smoothed = (1-self.q_filt)*q_new + self.q_filt*self.q
 
             #dq_new = (3*q_smoothed - 4*self.q + self.q_prev)/(2*dt)
-            dq_new = (q_new - self.q)/dt
+            dq_new = (q_new - self.q_prev)/dt
 
-            self.q_prev = self.q
+            #self.q_prev = self.q
+            self.q_prev = q_new
             self.q = q_smoothed
             self.dq = (1-self.dq_filt)*dq_new + self.dq_filt*self.dq
             self.state_time= data.header.stamp.to_sec()
