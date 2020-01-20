@@ -17,7 +17,7 @@ class AdaptiveController():
         self.q_des, self.dq_des = np.zeros(3), np.zeros(3)
         self.ddq_des = np.zeros(3)
         self.state_time = -1
-        self.q_prevs = []
+        self.q_prev = np.zeros(3)
 
         self.wrap_tol = 0.25
 
