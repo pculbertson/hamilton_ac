@@ -19,7 +19,7 @@
     <param name="/ac/Kd_ang" value="10" />
     <param name="/ac/Gamma" value=".01" />
     <param name="/ac/q_filt" value="0.95" />
-    <param name="/ac/dq_filt" value="0.95" />
+    <param name="/ac/dq_filt" value="0.99" />
     <param name="/ac/deadband" value="0.01" />
     <param name="/ac/v_max" value="0.5" />
 

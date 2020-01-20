@@ -13,7 +13,7 @@ class AdaptiveController():
         self.getParams()
         self.active = False
         self.controllerReset()
-        self.q = self.dq = np.zeros(3)
+        self.q = self.q_raw = self.dq = np.zeros(3)
         self.q_des, self.dq_des = np.zeros(3), np.zeros(3)
         self.ddq_des = np.zeros(3)
         self.state_time = -1
@@ -64,39 +64,52 @@ class AdaptiveController():
     def controllerCallback(self,event):
         """defines a timer callback to implement controller"""
         #define dynamics terms
+        if self.state_time == -1:
+            self.state_time = data.header.stamp.to_sec()
+        else:
+            dt = event.current_real.to_sec() - self.state_time
+            q_smoothed = (1-self.q_filt)*self.q_raw + self.q_filt*self.q
 
-        if self.active:
-            dt = event.current_real.to_sec() - event.last_real.to_sec()
-            q_err = self.q - self.q_des
-            dq_err = self.dq - self.dq_des
-            s = dq_err + self.L@q_err
-            dq_r = self.dq_des - self.L@q_err
-            ddq_r = self.ddq_des - self.L@dq_err
+            dq_new = (3*q_smoothed - 4*self.q + self.q_prev)/(2*dt)
+            dq_new = np.clip(dq_new,-self.v_max,self.v_max)
+            #dq_new = (q_new - self.q_prev)/dt
 
-            #control law
-            self.F = self.Y() @ self.a_hat - self.Kd @ s #world frame
-            self.tau = self.Mhat_inv() @ self.F #world frame
+            self.q_prev = self.q
+            self.q = q_smoothed
+            self.dq = (1-self.dq_filt)*dq_new + self.dq_filt*self.dq
+            self.state_time= data.header.stamp.to_sec()
+            
+            if self.active:
+                q_err = self.q - self.q_des
+                dq_err = self.dq - self.dq_des
+                s = dq_err + self.L@q_err
+                dq_r = self.dq_des - self.L@q_err
+                ddq_r = self.ddq_des - self.L@dq_err
 
-            #adaptation law:
-            if np.linalg.norm(s) > self.deadband:
-                param_derivative = self.Gamma @ (self.Y()+self.Z()).T @ s
-                self.a_hat = self.a_hat - dt*(param_derivative)
-            # TODO: (Preston): implement Heun's method for integration;
-                #do projection step here & finish w/next value of s above.
+                #control law
+                self.F = self.Y() @ self.a_hat - self.Kd @ s #world frame
+                self.tau = self.Mhat_inv() @ self.F #world frame
 
-                #projection step:
-                self.a_hat[self.pos_elems] = np.maximum(
-                    self.a_hat[self.pos_elems],0.)
+                #adaptation law:
+                if np.linalg.norm(s) > self.deadband:
+                    param_derivative = self.Gamma @ (self.Y()+self.Z()).T @ s
+                    self.a_hat = self.a_hat - dt*(param_derivative)
+                # TODO: (Preston): implement Heun's method for integration;
+                    #do projection step here & finish w/next value of s above.
 
-            err_msg = Reference(Vector3(*q_err),Vector3(*dq_err),
-                Vector3(*s)) #use ddq field for s since it's empty otherwise
-            self.err_pub.publish(err_msg)
+                    #projection step:
+                    self.a_hat[self.pos_elems] = np.maximum(
+                        self.a_hat[self.pos_elems],0.)
 
-        #publish command in world frame; use force_global to rotate
-        lin_cmd = Vector3(x=self.tau[0],y=self.tau[1],z=0.)
-        ang_cmd = Vector3(x=0.,y=0.,z=self.tau[2])
-        cmd_msg = Twist(linear=lin_cmd,angular=ang_cmd)
-        self.cmd_pub.publish(cmd_msg)
+                err_msg = Reference(Vector3(*q_err),Vector3(*dq_err),
+                    Vector3(*s)) #use ddq field for s since it's empty otherwise
+                self.err_pub.publish(err_msg)
+
+            #publish command in world frame; use force_global to rotate
+            lin_cmd = Vector3(x=self.tau[0],y=self.tau[1],z=0.)
+            ang_cmd = Vector3(x=0.,y=0.,z=self.tau[2])
+            cmd_msg = Twist(linear=lin_cmd,angular=ang_cmd)
+            self.cmd_pub.publish(cmd_msg)
 
         state_msg = Reference(Vector3(*self.q),Vector3(*self.dq),Vector3())
         self.state_pub.publish(state_msg)
@@ -107,26 +120,11 @@ class AdaptiveController():
 
     def stateCallback(self,data):
         '''handles measurement callback from Optitrack'''
-        if self.state_time == -1:
-            self.state_time = data.header.stamp.to_sec()
-        else:
-            dt = data.header.stamp.to_sec() - self.state_time
-            th = quaternion_to_angle(data.pose.orientation)
-            q_new = np.array([data.pose.position.x,data.pose.position.y,th])
-            q_new[2], self.q[2], self.q_prev[2] = self.wrap_angles(
-                q_new[2], self.q[2], self.q_prev[2])
-            q_smoothed = (1-self.q_filt)*q_new + self.q_filt*self.q
-
-            dq_new = (q_smoothed-self.q)/(dt)
-            #dq_new = (3*q_smoothed - 4*self.q + self.q_prev)/(2*dt)
-            dq_new = np.clip(dq_new,-self.v_max,self.v_max)
-
-            #dq_new = (q_new - self.q_prev)/dt
-
-            self.q_prev = self.q
-            self.q = q_smoothed
-            self.dq = (1-self.dq_filt)*dq_new + self.dq_filt*self.dq
-            self.state_time= data.header.stamp.to_sec()
+        th = quaternion_to_angle(data.pose.orientation)
+        q_new = np.array([data.pose.position.x,data.pose.position.y,th])
+        q_new[2], self.q[2], self.q_prev[2] = self.wrap_angles(
+            q_new[2], self.q[2], self.q_prev[2])
+        self.q_raw = q_new
 
     def refCallback(self,data):
         self.q_des = np.array([data.q_des.x,data.q_des.y,data.q_des.z])
