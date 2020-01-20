@@ -111,7 +111,6 @@ class AdaptiveController():
             self.state_time = data.header.stamp.to_sec()
         else:
             dt = data.header.stamp.to_sec() - self.state_time
-            print(dt)
             th = quaternion_to_angle(data.pose.orientation)
             q_new = np.array([data.pose.position.x,data.pose.position.y,th])
             q_new[2], self.q[2], self.q_prev[2] = self.wrap_angles(
