@@ -10,16 +10,18 @@
     <param name="/ac/q_filt" value="0.95" />
     <param name="/ac/dq_filt" value="0.95" />
     <param name="/ac/deadband" value="0.1" />
-    -->
+-->
 
     <!--sliding mode control parameters-->
-    <param name="/ac/L" value="10." />
-    <param name="/ac/Kd_lin" value="2.5" />
-    <param name="/ac/Kd_ang" value="0.25" />
-    <param name="/ac/Gamma" value="0.005" />
-    <param name="/ac/q_filt" value="0.75" />
+
+    <param name="/ac/L" value="0.0" />
+    <param name="/ac/Kd_lin" value="30" />
+    <param name="/ac/Kd_ang" value="10" />
+    <param name="/ac/Gamma" value=".01" />
+    <param name="/ac/q_filt" value="0.95" />
     <param name="/ac/dq_filt" value="0.95" />
-    <param name="/ac/deadband" value="0.05" />
+    <param name="/ac/deadband" value="0.01" />
+    <param name="/ac/v_max" value="0.5" />
 
     <param name="/ouijabot1/offset_angle" value="-1.57" />
     <param name="/ouijabot2/offset_angle" value="3.14" />

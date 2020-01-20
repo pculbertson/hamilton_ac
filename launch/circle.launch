@@ -1,9 +1,10 @@
 <launch>
     <include file="$(find vrpn_client_ros)/launch/optitrack.launch" />
+    <include file="$(find ouijabot)/launch/params.launch" />
     <include file="$(find hamilton_ac)/launch/ac_params.launch" />
     <node name="ref_node" pkg="hamilton_ac" type="circle_ref.py" output="screen">
-        <param name="R" value="0.5"/>
-        <param name="T" value="10.0"/>
+        <param name="R" value="2."/>
+        <param name="T" value="45.0"/>
         <param name="c_x" value="0.0"/>
         <param name="c_y" value="0.0"/>
         <param name="rot" value="false"/>
