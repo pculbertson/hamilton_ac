@@ -77,8 +77,8 @@ class AdaptiveController():
             self.q_prev = self.q
             self.q = q_smoothed
             self.dq = (1-self.dq_filt)*dq_new + self.dq_filt*self.dq
-            self.state_time= data.header.stamp.to_sec()
-            
+            self.state_time= event.current_real.to_sec()
+
             if self.active:
                 q_err = self.q - self.q_des
                 dq_err = self.dq - self.dq_des
