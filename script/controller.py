@@ -65,7 +65,7 @@ class AdaptiveController():
         """defines a timer callback to implement controller"""
         #define dynamics terms
         if self.state_time == -1:
-            self.state_time = data.header.stamp.to_sec()
+            self.state_time = event.current_real.to_sec()
         else:
             dt = event.current_real.to_sec() - self.state_time
             q_smoothed = (1-self.q_filt)*self.q_raw + self.q_filt*self.q
