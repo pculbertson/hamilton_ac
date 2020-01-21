@@ -83,6 +83,12 @@ class AdaptiveController():
 
             if self.active:
                 q_err = self.q - self.q_des
+                if abs(q_err[2]) > np.pi:
+                    print('this was a problem')
+                    if q_err[2] > 0:
+                        q_err -= 2*np.pi
+                    else
+                        q_err += 2*np.pi
                 dq_err = self.dq - self.dq_des
                 s = dq_err + self.L@q_err
                 dq_r = self.dq_des - self.L@q_err
