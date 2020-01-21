@@ -87,7 +87,7 @@ class AdaptiveController():
                     print('this was a problem')
                     if q_err[2] > 0:
                         q_err -= 2*np.pi
-                    else
+                    else:
                         q_err += 2*np.pi
                 dq_err = self.dq - self.dq_des
                 s = dq_err + self.L@q_err
