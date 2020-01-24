@@ -73,6 +73,8 @@ class AdaptiveController():
         else:
             dt = event.current_real.to_sec() - self.state_time
             q_smoothed = (1-self.q_filt)*self.q_raw + self.q_filt*self.q
+            q_smoothed[2], self.q[2], self.q_prev[2] = self.wrap_angles(
+                q_smoothed[2], self.q[2], self.q_prev[2])
 
             dq_new = (3*q_smoothed - 4*self.q + self.q_prev)/(2*dt)
             dq_new = np.clip(dq_new,-self.v_max,self.v_max)
@@ -132,8 +134,6 @@ class AdaptiveController():
         '''handles measurement callback from Optitrack'''
         th = quaternion_to_angle(data.pose.orientation)
         q_new = np.array([data.pose.position.x,data.pose.position.y,th])
-        q_new[2], self.q[2], self.q_prev[2] = self.wrap_angles(
-            q_new[2], self.q[2], self.q_prev[2])
         self.q_raw = q_new
 
     def refCallback(self,data):
