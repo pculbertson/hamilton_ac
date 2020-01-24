@@ -38,6 +38,8 @@ class AdaptiveController():
     def controllerReset(self):
         self.tau, self.F = np.zeros(3), np.zeros(3)
         self.a_hat = np.zeros(10)
+        self.a_hat[0] = 10.
+        self.a_hat[1] = 50.
 
     def getParams(self):
         self.L_lin = rospy.get_param('/ac/L_lin')
