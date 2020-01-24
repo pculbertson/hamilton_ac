@@ -10,9 +10,9 @@ class AdaptiveController():
     #implements adaptive controller for ouijabot in 2D manipulation
     #a = [m,J,m*rpx,m*rpy,u1,u1*rix,u1*riy,u1*||ri||,rix,riy]
     def __init__(self):
+        self.controllerReset()
         self.getParams()
         self.active = False
-        self.controllerReset()
         self.q = self.q_raw = self.dq = np.zeros(3)
         self.q_des, self.dq_des = np.zeros(3), np.zeros(3)
         self.ddq_des = np.zeros(3)
