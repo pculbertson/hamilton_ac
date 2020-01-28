@@ -2,7 +2,7 @@
 import numpy as np
 from numpy import sin, cos
 from geometry_msgs.msg import Twist,Vector3,PoseStamped
-from std_msgs.msg import Bool, Float64MultiArray
+from std_msgs.msg import Bool, Float64MultiArray, Float64
 from hamilton_ac.msg import Reference
 import rospy
 
@@ -30,6 +30,7 @@ class AdaptiveController():
             self.activeCallback)
         self.state_pub = rospy.Publisher('state_est',Reference,queue_size=1)
         self.err_pub = rospy.Publisher('err', Reference, queue_size=1)
+        self.e_norm_pub = rospy.Publisher('e_norm', Float64, queue_size=1)
         self.param_pub = rospy.Publisher('param_est', Float64MultiArray,
             queue_size=1)
         self.cmd_timer = rospy.Timer(rospy.Duration(0.1),
@@ -117,6 +118,7 @@ class AdaptiveController():
                 err_msg = Reference(Vector3(*q_err),Vector3(*dq_err),
                     Vector3(*s)) #use ddq field for s since it's empty otherwise
                 self.err_pub.publish(err_msg)
+                self.e_norm_pub.publish(Float64(np.linalg.norm(s)))
 
             #publish command in world frame; use force_global to rotate
             lin_cmd = Vector3(x=self.tau[0],y=self.tau[1],z=0.)
