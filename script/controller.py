@@ -19,8 +19,6 @@ class AdaptiveController():
         self.state_time = -1
         self.q_prev = np.zeros(3)
 
-        self.a_mags = [40., 25., 40., 40., 2., 2., 2., 3., 1., 1.]
-
         self.wrap_tol = 0.25
 
         self.cmd_pub = rospy.Publisher('cmd_global',Twist,queue_size=1)
@@ -42,6 +40,7 @@ class AdaptiveController():
         self.a_hat = np.zeros(10)
 
     def getParams(self):
+        self.a_mags = [40., 25., 40., 40., 2., 2., 2., 3., 1., 1.]
         self.L_lin = rospy.get_param('/ac/L_lin')
         self.L_ang = rospy.get_param('/ac/L_ang')
         self.L = np.diag([self.L_lin,self.L_lin,self.L_ang])
