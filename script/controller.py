@@ -40,7 +40,7 @@ class AdaptiveController():
         self.a_hat = np.zeros(10)
 
     def getParams(self):
-        self.a_mags = [40., 25., 40., 40., 2., 2., 2., 3., 1., 1.]
+        self.a_mags = rospy.get_param('ac/a_mags')
         self.L_lin = rospy.get_param('/ac/L_lin')
         self.L_ang = rospy.get_param('/ac/L_ang')
         self.L = np.diag([self.L_lin,self.L_lin,self.L_ang])
