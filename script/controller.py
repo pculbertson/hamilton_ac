@@ -19,6 +19,8 @@ class AdaptiveController():
         self.state_time = -1
         self.q_prev = np.zeros(3)
 
+        self.a_mags = [40., 25., 40., 40., 2., 2,. 2., 3., 1., 1.]
+
         self.wrap_tol = 0.25
 
         self.cmd_pub = rospy.Publisher('cmd_global',Twist,queue_size=1)
@@ -46,7 +48,7 @@ class AdaptiveController():
         self.Kd_lin = rospy.get_param('/ac/Kd_lin')
         self.Kd_ang = rospy.get_param('/ac/Kd_ang')
         self.Kd = np.diag([self.Kd_lin,self.Kd_lin,self.Kd_ang])
-        self.Gamma = rospy.get_param('/ac/Gamma')*np.eye(10)
+        self.Gamma = rospy.get_param('/ac/Gamma')*np.diag(1 ./ self.a_mags)
         self.pos_elems = [0,1,4,7] #flags which elements to project to >0
         self.deadband = rospy.get_param('/ac/deadband')
         self.q_filt = rospy.get_param('/ac/q_filt')
