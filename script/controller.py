@@ -19,7 +19,7 @@ class AdaptiveController():
         self.state_time = -1
         self.q_prev = np.zeros(3)
 
-        self.a_mags = [40., 25., 40., 40., 2., 2,. 2., 3., 1., 1.]
+        self.a_mags = [40., 25., 40., 40., 2., 2., 2., 3., 1., 1.]
 
         self.wrap_tol = 0.25
 
