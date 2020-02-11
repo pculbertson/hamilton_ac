@@ -159,7 +159,7 @@ class AdaptiveController():
             print('wrapping!')
             z_curr = z_curr + 2*np.pi if z_new > z_curr else z_curr - 2*np.pi
 
-        if abs(z_new - z_prev) >= 2*np.pi - self.wrap_tol:
+        if abs(z_curr - z_prev) >= 2*np.pi - self.wrap_tol:
             z_prev = z_prev + 2*np.pi if z_new > z_prev else z_prev - 2*np.pi
 
         return z_new, z_curr, z_prev

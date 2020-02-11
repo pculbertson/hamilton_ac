@@ -1,0 +1,15 @@
+<launch>
+    <include file="$(find vrpn_client_ros)/launch/optitrack.launch" />
+    <include file="$(find ouijabot)/launch/params.launch" />
+    <include file="$(find hamilton_ac)/launch/params_spline.launch" />
+    <node name="ref_node" pkg="hamilton_ac" type="spline_ref.py" output="screen">
+        <param name="T" value="45.0"/>
+        <param name="knots_x" value="0, 1, 2, 1, 0, -1, -2, -1" />
+        <param name="knots_y" value="0, 1, 0, -1, 0, 1, 0, -1" />
+        <param name="knots_th" value="0, 0.785, 1.57, 0.785, 0, -0.785, -1.57, -0.785" />
+        <param name="traj_scale" value="1.0" />
+        <param name="pub_freq" value="10."/>
+    </node>
+    <node name="joy_node" pkg="joy" type="joy_node" output="screen" />
+    <node name="active_node" pkg="hamilton_ac" type="joy_active.py" output="screen" />
+</launch>

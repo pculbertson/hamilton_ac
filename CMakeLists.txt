@@ -163,6 +163,7 @@ include_directories(
  install(PROGRAMS
    script/controller.py
    script/circle_ref.py
+   script/spline_ref.py
    script/joy_active.py
    script/joy_ref.py
    script/force_global.py

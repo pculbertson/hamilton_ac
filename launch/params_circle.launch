@@ -1,0 +1,47 @@
+<launch>
+    <param name="use_sim_time" value="false"/>
+
+    <!--velocity control parameters-->
+    <param name="/ac/L_lin" value="0." />
+    <param name="/ac/L_ang" value="0.0" />
+    <param name="/ac/Kd_lin" value="5." />
+    <param name="/ac/Kd_ang" value="1." />
+    <!-- <param name="/ac/Gamma" value="0.001"/>-->
+    <param name="/ac/Gamma" value="0.001"/>
+    <param name="/ac/q_filt" value="0.6" />
+    <param name="/ac/dq_filt" value="0.8" />
+    <param name="/ac/deadband" value="0.1" />
+    <param name="/ac/m_init" value="10." />
+    <param name="/ac/J_init" value="2.5" />
+    <!--<param name="/ac/a_mags" value="400., 250., 400., 400., 200., 200., 200., 300., 100., 100."/>
+
+    a = [m,J,m*rpx,m*rpy,u1,u1*rix,u1*riy,u1*||ri||,rix,riy]  -->
+    <!--<param name="/ac/a_mags" value="40., 25., 10., 10., 4., 4., 4., 3., 1., 1."/>-->
+    <param name="/ac/a_mags" value="40., 25., 2.5, 2.5, 1., 1., 1., 2., 1., 1."/>
+
+    <!--sliding mode control parameters-->
+
+    <param name="/ac/L_lin" value="1." />
+    <param name="/ac/L_ang" value="1.0" />
+    <param name="/ac/Kd_lin" value="25." />
+    <param name="/ac/Kd_ang" value="10." />
+    <param name="/ac/Gamma" value="0."/>
+    <!--<param name="/ac/Gamma" value="25."/>-->
+    <param name="/ac/q_filt" value="0.8" />
+    <param name="/ac/dq_filt" value="0.9" />
+    <param name="/ac/deadband" value="0.15" />
+    <param name="/ac/m_init" value="10." />
+    <param name="/ac/J_init" value="2.5" />
+    <!--<param name="/ac/a_mags" value="400., 250., 400., 400., 200., 200., 200., 300., 100., 100."/>
+
+    a = [m,J,m*rpx,m*rpy,u1,u1*rix,u1*riy,u1*||ri||,rix,riy]  -->
+    <param name="/ac/a_mags" value="10., 100., 2.5, 2.5, 1., .1, .1, 2., 0.001, 0.001"/>
+    <!--<param name="/ac/a_mags" value="10., 100., 5., 5., 2.5, .1, .1, 2., 0.001, 0.001"/>-->
+
+    <param name="/ouijabot1/offset_angle" value="-1.57" />
+    <param name="/ouijabot2/offset_angle" value="3.14" />
+    <param name="/ouijabot3/offset_angle" value="1.57" />
+    <param name="/ouijabot4/offset_angle" value="1.57" />
+    <param name="/ouijabot5/offset_angle" value="-0.52" />
+    <param name="/ouijabot6/offset_angle" value="-0.52" />
+</launch>
