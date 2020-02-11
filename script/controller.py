@@ -73,6 +73,11 @@ class AdaptiveController():
             self.state_time = event.current_real.to_sec()
         else:
             dt = event.current_real.to_sec() - self.state_time
+            if abs(self.q[2]-self.q_raw[2]) > 2*np.pi - self.wrap_tol:
+                if self.q[2] > self.q_raw[2]:
+                    self.q_raw[2] += 2*np.pi
+                else:
+                    self.q_raw[2] -= 2*np.pi
             q_smoothed = (1-self.q_filt)*self.q_raw + self.q_filt*self.q
             q_smoothed[2], self.q[2], self.q_prev[2] = self.wrap_angles(
                 q_smoothed[2], self.q[2], self.q_prev[2])
@@ -155,11 +160,11 @@ class AdaptiveController():
 
     def wrap_angles(self,z_new,z_curr,z_prev):
         if abs(z_new - z_curr) >= 2*np.pi - self.wrap_tol:
-            rospy.logwarn('wrapping!')
+            print('wrapping!')
             z_new = z_new + 2*np.pi if z_new < z_curr else z_new - 2*np.pi
 
         if abs(z_curr - z_prev) >= 2*np.pi - self.wrap_tol:
-            rospy.logwarn('wrapping!')
+            print('wrapping!')
             z_prev = z_prev + 2*np.pi if z_curr > z_prev else z_prev - 2*np.pi
 
         return z_new, z_curr, z_prev
