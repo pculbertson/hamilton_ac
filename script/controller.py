@@ -19,8 +19,6 @@ class AdaptiveController():
         self.state_time = -1
         self.q_prev = np.zeros(3)
 
-        self.wrap_tol = 0.25
-
         self.cmd_pub = rospy.Publisher('cmd_global',Twist,queue_size=1)
         self.state_sub = rospy.Subscriber('state',PoseStamped,
             self.stateCallback)
@@ -58,6 +56,7 @@ class AdaptiveController():
         self.v_max = rospy.get_param('/ac/v_max',5.0)
         self.a_hat[0] = rospy.get_param('/ac/m_init',15.)
         self.a_hat[1] = rospy.get_param('/ac/J_init',15.)
+        self.wrap_tol = rospy.get_param('/ac/wrap_tol',0.1)
 
     def activeCallback(self,msg):
         if not self.active and msg.data:
@@ -160,6 +159,7 @@ class AdaptiveController():
             z_new = z_new + 2*np.pi if z_new < z_curr else z_new - 2*np.pi
 
         if abs(z_curr - z_prev) >= 2*np.pi - self.wrap_tol:
+            print('wrapping!')
             z_prev = z_prev + 2*np.pi if z_new > z_prev else z_prev - 2*np.pi
 
         return z_new, z_curr, z_prev

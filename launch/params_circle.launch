@@ -13,6 +13,7 @@
     <param name="/ac/deadband" value="0.1" />
     <param name="/ac/m_init" value="10." />
     <param name="/ac/J_init" value="2.5" />
+    <param name="/ac/wrap_tol" value="0.05" />
     <!--<param name="/ac/a_mags" value="400., 250., 400., 400., 200., 200., 200., 300., 100., 100."/>
 
     a = [m,J,m*rpx,m*rpy,u1,u1*rix,u1*riy,u1*||ri||,rix,riy]  -->
