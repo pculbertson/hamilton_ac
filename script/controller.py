@@ -89,7 +89,7 @@ class AdaptiveController():
             if self.active:
                 q_err = self.q - self.q_des
                 if abs(q_err[2]) > np.pi:
-                    print('this was a problem')
+                    rospy.logwarn('this was a problem')
                     if q_err[2] > 0:
                         q_err -= 2*np.pi
                     else:
@@ -155,12 +155,12 @@ class AdaptiveController():
 
     def wrap_angles(self,z_new,z_curr,z_prev):
         if abs(z_new - z_curr) >= 2*np.pi - self.wrap_tol:
-            print('wrapping!')
+            rospy.logwarn('wrapping!')
             z_new = z_new + 2*np.pi if z_new < z_curr else z_new - 2*np.pi
 
         if abs(z_curr - z_prev) >= 2*np.pi - self.wrap_tol:
-            print('wrapping!')
-            z_prev = z_prev + 2*np.pi if z_new > z_prev else z_prev - 2*np.pi
+            rospy.logwarn('wrapping!')
+            z_prev = z_prev + 2*np.pi if z_curr > z_prev else z_prev - 2*np.pi
 
         return z_new, z_curr, z_prev
 
