@@ -157,7 +157,7 @@ class AdaptiveController():
     def wrap_angles(self,z_new,z_curr,z_prev):
         if abs(z_new - z_curr) >= 2*np.pi - self.wrap_tol:
             print('wrapping!')
-            z_curr = z_curr + 2*np.pi if z_new > z_curr else z_curr - 2*np.pi
+            z_new = z_new + 2*np.pi if z_new < z_curr else z_new - 2*np.pi
 
         if abs(z_curr - z_prev) >= 2*np.pi - self.wrap_tol:
             z_prev = z_prev + 2*np.pi if z_new > z_prev else z_prev - 2*np.pi
