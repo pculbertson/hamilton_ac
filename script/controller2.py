@@ -144,8 +144,7 @@ class AdaptiveController():
                         [self.o_pos_elems,self.g_pos_elems,self.d_pos_elems,
                         self.c_pos_elems]):
                         if elems is not None:
-                            print(elems)
-                            param[elems] = np.max(param[elems],0.)
+                            param[elems] = np.maximum(param[elems],0.)
 
 
                 err_msg = Reference(Vector3(*q_err),Vector3(*dq_err),
