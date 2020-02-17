@@ -19,7 +19,7 @@ class AdaptiveController():
         self.state_time = -1
         self.q_prev = np.zeros(3)
 
-        self.cmd_pub = of.Publisher('cmd_global',Twist,queue_size=1)
+        self.cmd_pub = rospy.Publisher('cmd_global',Twist,queue_size=1)
         self.state_sub = rospy.Subscriber('state',PoseStamped,
             self.stateCallback)
 
