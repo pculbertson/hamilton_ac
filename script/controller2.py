@@ -130,7 +130,7 @@ class AdaptiveController():
                 #adaptation law:
                 if np.linalg.norm(s) > self.deadband:
                     #calculate param derivatives
-                    do = -self.G_o@np.transpose(self.Y_o(dqr,ddqr))@s
+                    do = -self.G_o@np.transpose(self.Y_o(dq_r,ddq_r))@s
                     dg = -self.G_g@np.transpose(self.Y_g())@s
                     dd = -self.G_d@np.transpose(self.Y_d())@s
                     dc = -self.G_c@np.transpose(self.Y_c())@s
