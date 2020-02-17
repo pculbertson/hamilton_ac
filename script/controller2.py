@@ -55,7 +55,7 @@ class AdaptiveController():
         self.G_d = rospy.get_param('/ac/Gamma')*np.diag(self.d_mags)
         self.G_c = rospy.get_param('/ac/Gamma')*np.diag(self.c_mags)
         self.o_pos_elems = [0,1] #flags which elements to project to >0
-        self.g_pos_elems = []
+        self.g_pos_elems = None
         self.d_pos_elems = [0,3]
         self.c_pos_elems = [0,3]
         self.deadband = rospy.get_param('/ac/deadband')
@@ -143,7 +143,7 @@ class AdaptiveController():
                     for param, elems in zip([self.o,self.g,self.d,self.c],
                         [self.o_pos_elems,self.g_pos_elems,self.d_pos_elems,
                         self.c_pos_elems]):
-                        if not elems == None:
+                        if elems is not None:
                             param[elems] = np.max(param[elems],0.)
 
 
