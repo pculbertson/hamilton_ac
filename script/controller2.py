@@ -138,7 +138,7 @@ class AdaptiveController():
                     self.o = self.o + dt*do
                     self.g = self.g + dt*dg
                     self.d = self.d + dt*dd
-                    self.c = self.c + dt*
+                    self.c = self.c + dt*dc
                     #project onto feasible region
                     for param, elems in zip([self.o,self.g,self.d,self.c],
                         [self.o_pos_elems,self.g_pos_elems,self.d_pos_elems,
@@ -229,30 +229,6 @@ class AdaptiveController():
 
     def rot(self,t):
         return np.array([[cos(t),sin(t),0],[-sin(t),cos(t),0],[0,0,1]])
-
-    def Y(self):
-        """Y*a = H*ddqr + (C+D)dqr"""
-        x, y, th = self.q
-        dx, dy, dth = self.dq
-        dxr, dyr, dthr = self.dq_des
-        ddxr, ddyr, ddthr = self.ddq_des
-        block1h = np.array([[ddxr,0,-sin(th)*ddthr, cos(th)*ddthr],
-            [ddyr,0,-cos(th)*ddthr,-sin(th)*ddthr],
-            [0,ddthr,-sin(th)*ddxr-cos(th)*ddyr,cos(th)*ddxr-sin(th)*ddyr]])
-        block1c = np.array([[0,0,dth*dthr,0],[0,0,0,dth*dthr],[0,0,0,0]])
-        block2 = np.array([[dxr,sin(th)*dthr,-cos(th)*dthr,0],
-            [dyr,cos(th)*dthr,sin(th)*dthr,0],
-            [0,sin(th)*dxr+cos(th)*dyr,-cos(th)*dxr+sin(th)*dyr,dthr]])
-        Y = np.concatenate((block1h+block1c,block2,np.zeros((3,2))),axis=1)
-        return Y
-
-    def Z(self):
-        """F + Z(q,F)@(ahat-a) = G*inv(Ghat)*F"""
-        _ ,_ ,th = self.q
-        Fx, Fy, _ = self.F
-        block = np.array([[0,0],[0,0],
-            [-(sin(th)*Fx+cos(th)*Fy),cos(th)*Fx-sin(th)*Fy]])
-        return np.concatenate((np.zeros((3,8)),block),axis=1)controller
 
 def quaternion_to_angle(q):
     """transforms quaternion to body angle in plane"""
