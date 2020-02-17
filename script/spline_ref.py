@@ -6,7 +6,7 @@ from hamilton_ac.msg import Reference
 from std_msgs.msg import Bool
 from sensor_msgs.msg import Joy
 
-class CircleRef():
+class SplineRef():
     def __init__(self):
         self.active = False
         self.start_time = -1.
@@ -29,7 +29,6 @@ class CircleRef():
 
     def solve_splines(self):
         n = len(self.knots_x)
-        rospy.logwarn(self.knots_x)
         regressor_mat = np.zeros((4*n,4*n))
         regressor_vec_x = np.zeros(4*n)
         regressor_vec_y = np.zeros(4*n)
@@ -94,7 +93,6 @@ class CircleRef():
     def ref_callback(self,event):
         if not self.active:
             return
-
         if self.go_home:
             q_des, dq_des, ddq_des = Vector3(), Vector3(), Vector3()
         else:
@@ -125,7 +123,7 @@ class CircleRef():
 def main():
     rospy.init_node("circle_ref")
     try:
-        CircleRef()
+        SplineRef()
         rospy.spin()
     except rospy.ROSException as e:
         rospy.logwarn('closing reference')

@@ -7,9 +7,9 @@
     <node name="ref_node" pkg="hamilton_ac" type="joy_ref.py" output="screen">
         <param name="max_lin_vel" value="0.5"/>
         <param name="max_ang_vel" value="0.5"/>
-        <param name="lin_accel_scale" value="1.0"/>
-        <param name="ang_accel_scale" value="1.0"/>
-        <param name="vel_decay" value="2.0" />
-        <param name="max_delay" value="2.0"/>
+        <param name="lin_accel_scale" value="0.75"/>
+        <param name="ang_accel_scale" value="0.75"/>
+        <param name="vel_decay" value="1.5" />
+        <param name="max_delay" value="1.5"/>
     </node>
 </launch>

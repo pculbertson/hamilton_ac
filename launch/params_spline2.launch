@@ -18,7 +18,10 @@
     <param name="/ac/wrap_tol" value="1.25" />
     <!--<param name="/ac/a_mags" value="400., 250., 400., 400., 200., 200., 200., 300., 100., 100."/>
     a = [m,J,m*rpx,m*rpy,u1,u1*rix,u1*riy,u1*||ri||,rix,riy]  -->
-    <param name="/ac/a_mags" value="20., 100., 20, 20, 0.001, 10, 10, 10, 0.001, 0.001"/>
+    <param name="/ac/o_mags" value="20., 100., 20, 20" />
+    <param name="ac/g_mags", value="0.001,0.001" />
+    <param name="ac/d_mags", value= "0.001, 10, 10, 10," />
+    <param name="ac/c_mags", value= "0.001, 10, 10, 0.001" />
     <!--<param name="/ac/a_mags" value="10., 100., 5., 5., 2.5, .1, .1, 2., 0.001, 0.001"/>-->
 
     <param name="/ouijabot1/offset_angle" value="-1.57" />
