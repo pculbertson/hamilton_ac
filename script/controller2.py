@@ -222,7 +222,7 @@ class AdaptiveController():
     def Y_c(self):
         x,y,th = self.q
         eps = 1e-4
-        sgn_v = self.v_i / (self.np.abs(v_i)+eps)
+        sgn_v = self.v_i / (np.abs(v_i)+eps)
         vx, vy, w = sgn_v
         return np.array([[vx,0,0,0],[vy,0,0,0],
             [0,vx*sin(th)+vy*cos(th),vy*sin(th)-vx*cos(th),w]])
