@@ -162,7 +162,7 @@ class AdaptiveController():
         self.state_pub.publish(state_msg)
 
         param_msg = Float64MultiArray()
-        param_msg.data = np.stack((self.o,self.g,self.d,self.c),axis=0)
+        param_msg.data = np.concatenate((self.o,self.g,self.d,self.c),axis=0)
         self.param_pub.publish(param_msg)
 
     def stateCallback(self,data):
