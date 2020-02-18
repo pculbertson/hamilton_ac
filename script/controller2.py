@@ -103,7 +103,7 @@ class AdaptiveController():
             self.dq = (1-self.dq_filt)*dq_new + self.dq_filt*self.dq
 
             #calculate local measurement using moment arm
-            self.curr_arm = self.rot(self.q[-1]+self.offset_angle)@self.moment_arm
+            self.curr_arm = self.rot(self.q[-1])@self.moment_arm
             rix, riy = self.curr_arm[0:2]
             self.v_i = self.dq + np.array([-self.dq[-1]*riy,self.dq[-1]*rix,0.])
             rospy.logwarn('i am actually doing this calculation')
