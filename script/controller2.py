@@ -106,7 +106,7 @@ class AdaptiveController():
             self.curr_arm = self.rot(self.q[-1]+self.offset_angle)@self.moment_arm
             rix, riy = self.curr_arm[0:2]
             self.v_i = self.dq + np.array([-self.dq[-1]*riy,self.dq[-1]*rix,0.])
-
+            rospy.logwarn(self.v_i)
             self.state_time= event.current_real.to_sec()
 
             if self.active:
