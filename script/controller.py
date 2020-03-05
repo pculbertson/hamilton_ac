@@ -36,18 +36,29 @@ class AdaptiveController():
 
     def controllerReset(self):
         self.tau, self.F = np.zeros(3), np.zeros(3)
-        self.a_hat = np.zeros(10)
+        self.o, self.g = np.zeros(4), np.zeros(2)
+        self.d, self.c = np.zeros(4), np.zeros(4)
+
 
     def getParams(self):
-        self.a_mags = np.fromstring(rospy.get_param('/ac/a_mags'), sep=", ")
+        self.o_mags = np.fromstring(rospy.get_param('/ac/o_mags'), sep=", ")
+        self.g_mags = np.fromstring(rospy.get_param('/ac/g_mags'), sep=", ")
+        self.d_mags = np.fromstring(rospy.get_param('/ac/d_mags'), sep=", ")
+        self.c_mags = np.fromstring(rospy.get_param('/ac/c_mags'), sep=", ")
         self.L_lin = rospy.get_param('/ac/L_lin')
         self.L_ang = rospy.get_param('/ac/L_ang')
         self.L = np.diag([self.L_lin,self.L_lin,self.L_ang])
         self.Kd_lin = rospy.get_param('/ac/Kd_lin')
         self.Kd_ang = rospy.get_param('/ac/Kd_ang')
         self.Kd = np.diag([self.Kd_lin,self.Kd_lin,self.Kd_ang])
-        self.Gamma = rospy.get_param('/ac/Gamma')*np.diag(self.a_mags)
-        self.pos_elems = [0,1,4,7] #flags which elements to project to >0
+        self.G_o = rospy.get_param('/ac/Gamma')*np.diag(self.o_mags)
+        self.G_g = rospy.get_param('/ac/Gamma')*np.diag(self.g_mags)
+        self.G_d = rospy.get_param('/ac/Gamma')*np.diag(self.d_mags)
+        self.G_c = rospy.get_param('/ac/Gamma')*np.diag(self.c_mags)
+        self.o_pos_elems = [0,1] #flags which elements to project to >0
+        self.g_pos_elems = None
+        self.d_pos_elems = [0,3]
+        self.c_pos_elems = [0,3]
         self.deadband = rospy.get_param('/ac/deadband')
         self.q_filt = rospy.get_param('/ac/q_filt')
         self.dq_filt = rospy.get_param('/ac/dq_filt')
@@ -55,8 +66,8 @@ class AdaptiveController():
         self.moment_arm = np.fromstring(rospy.get_param('moment_arm'), sep=", ")
             #from payload frame, default to zero
         self.v_max = rospy.get_param('/ac/v_max',5.0)
-        self.a_hat[0] = rospy.get_param('/ac/m_init',15.)
-        self.a_hat[1] = rospy.get_param('/ac/J_init',15.)
+        self.o[0] = rospy.get_param('/ac/m_init',15.)
+        self.o[1] = rospy.get_param('/ac/J_init',15.)
         self.wrap_tol = rospy.get_param('/ac/wrap_tol',0.1)
 
     def activeCallback(self,msg):
@@ -73,6 +84,7 @@ class AdaptiveController():
         if self.state_time == -1:
             self.state_time = event.current_real.to_sec()
         else:
+            #calculate state & current velocity
             dt = event.current_real.to_sec() - self.state_time
             if abs(self.q[2]-self.q_raw[2]) > 2*np.pi - self.wrap_tol:
                 if self.q[2] > self.q_raw[2]:
@@ -90,6 +102,13 @@ class AdaptiveController():
             self.q_prev = self.q
             self.q = q_smoothed
             self.dq = (1-self.dq_filt)*dq_new + self.dq_filt*self.dq
+
+            #calculate local measurement using moment arm
+            self.curr_arm = self.rot(self.q[-1])@self.moment_arm
+            rix, riy = self.curr_arm[0:2]
+            self.v_i = self.dq + np.array([-self.dq[-1]*riy,self.dq[-1]*rix,0.])
+            rospy.logwarn('i am actually doing this calculation')
+            rospy.logwarn(self.v_i)
             self.state_time= event.current_real.to_sec()
 
             if self.active:
@@ -106,19 +125,29 @@ class AdaptiveController():
                 ddq_r = self.ddq_des - self.L@dq_err
 
                 #control law
-                self.F = self.Y() @ self.a_hat - self.Kd @ s #world frame
+                self.F = (self.Y_o(dq_r,ddq_r) @ self.o + self.Y_d() @ self.d
+                    + self.Y_c() @ self.c - self.Kd @ s) #world frame
                 self.tau = self.Mhat_inv() @ self.F #world frame
 
                 #adaptation law:
                 if np.linalg.norm(s) > self.deadband:
-                    param_derivative = self.Gamma @ (self.Y()+self.Z()).T @ s
-                    self.a_hat = self.a_hat - dt*(param_derivative)
-                # TODO: (Preston): implement Heun's method for integration;
-                    #do projection step here & finish w/next value of s above.
+                    #calculate param derivatives
+                    do = -self.G_o@np.transpose(self.Y_o(dq_r,ddq_r))@s
+                    dg = -self.G_g@np.transpose(self.Y_g())@s
+                    dd = -self.G_d@np.transpose(self.Y_d(dq_r))@s
+                    dc = -self.G_c@np.transpose(self.Y_c())@s
+                    #apply derivatives
+                    self.o = self.o + dt*do
+                    self.g = self.g + dt*dg
+                    self.d = self.d + dt*dd
+                    self.c = self.c + dt*dc
+                    #project onto feasible region
+                    for param, elems in zip([self.o,self.g,self.d,self.c],
+                        [self.o_pos_elems,self.g_pos_elems,self.d_pos_elems,
+                        self.c_pos_elems]):
+                        if elems is not None:
+                            param[elems] = np.maximum(param[elems],0.)
 
-                    #projection step:
-                    self.a_hat[self.pos_elems] = np.maximum(
-                        self.a_hat[self.pos_elems],0.)
 
                 err_msg = Reference(Vector3(*q_err),Vector3(*dq_err),
                     Vector3(*s)) #use ddq field for s since it's empty otherwise
@@ -135,7 +164,7 @@ class AdaptiveController():
         self.state_pub.publish(state_msg)
 
         param_msg = Float64MultiArray()
-        param_msg.data = self.a_hat
+        param_msg.data = np.concatenate((self.o,self.g,self.d,self.c),axis=0)
         self.param_pub.publish(param_msg)
 
     def stateCallback(self,data):
@@ -151,7 +180,7 @@ class AdaptiveController():
 
     def Mhat_inv(self):
         """defines correction term for moment arms in control law"""
-        rhx, rhy = self.a_hat[-2:]
+        rhx, rhy = self.g
         _, _, th = self.q
 
         rhx_n = rhx*cos(th)+rhy*sin(th)
@@ -170,29 +199,38 @@ class AdaptiveController():
 
         return z_new, z_curr, z_prev
 
-    def Y(self):
-        """Y*a = H*ddqr + (C+D)dqr"""
+    def Y_o(self,dqr,ddqr):
         x, y, th = self.q
         dx, dy, dth = self.dq
-        dxr, dyr, dthr = self.dq_des
-        ddxr, ddyr, ddthr = self.ddq_des
-        block1h = np.array([[ddxr,0,-sin(th)*ddthr, cos(th)*ddthr],
-            [ddyr,0,-cos(th)*ddthr,-sin(th)*ddthr],
-            [0,ddthr,-sin(th)*ddxr-cos(th)*ddyr,cos(th)*ddxr-sin(th)*ddyr]])
-        block1c = np.array([[0,0,dth*dthr,0],[0,0,0,dth*dthr],[0,0,0,0]])
-        block2 = np.array([[dxr,sin(th)*dthr,-cos(th)*dthr,0],
-            [dyr,cos(th)*dthr,sin(th)*dthr,0],
-            [0,sin(th)*dxr+cos(th)*dyr,-cos(th)*dxr+sin(th)*dyr,dthr]])
-        Y = np.concatenate((block1h+block1c,block2,np.zeros((3,2))),axis=1)
+        dxr, dyr, dthr = dqr
+        ddxr, ddyr, ddthr = ddqr
+        block1h = np.array([[ddxr,0,-sin(th)*ddthr, cos(th)*ddthr],[ddyr,0,-cos(th)*ddthr,-sin(th)*ddthr],[0,ddthr,-sin(th)*ddxr-cos(th)*ddyr,cos(th)*ddxr-sin(th)*ddyr]])
+        block1c = np.array([[0,0,dth*dthr*cos(th),dth*dthr*sin(th)],[0,0,-dth*dthr*sin(th),dth*dthr*cos(th)],[0,0,0,0]])
+        Y = block1h + block1c
         return Y
 
-    def Z(self):
-        """F + Z(q,F)@(ahat-a) = G*inv(Ghat)*F"""
-        _ ,_ ,th = self.q
-        Fx, Fy, _ = self.F
-        block = np.array([[0,0],[0,0],
-            [-(sin(th)*Fx+cos(th)*Fy),cos(th)*Fx-sin(th)*Fy]])
-        return np.concatenate((np.zeros((3,8)),block),axis=1)
+    def Y_g(self):
+        Fx,Fy = self.F[0:2]
+        th = self.q[2]
+        return np.array([[0,0],[0,0],[-Fy*cos(th)-Fx*sin(th),-Fy*sin(th)+Fx*cos(th)]])
+
+    def Y_d(self,dq_r):
+        x,y,th = self.q
+        vx, vy, w = dq_r
+        return np.array([[vx,w*sin(th),-w*cos(th),0],
+                         [vy,w*cos(th),w*sin(th),0],
+                         [0,vx*sin(th)+vy*cos(th),vy*sin(th)-vx*cos(th),w]])
+
+    def Y_c(self):
+        x,y,th = self.q
+        eps = 1e-4
+        sgn_v = self.v_i / (np.abs(self.v_i)+eps)
+        vx, vy, w = sgn_v
+        return np.array([[vx,0,0,0],[vy,0,0,0],
+            [0,vx*sin(th)+vy*cos(th),vy*sin(th)-vx*cos(th),w]])
+
+    def rot(self,t):
+        return np.array([[cos(t),sin(t),0],[-sin(t),cos(t),0],[0,0,1]])
 
 def quaternion_to_angle(q):
     """transforms quaternion to body angle in plane"""

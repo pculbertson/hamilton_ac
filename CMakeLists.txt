@@ -162,8 +162,6 @@ include_directories(
 ## in contrast to setup.py, you can choose the destination
  install(PROGRAMS
    script/controller.py
-   script/controller2.py
-   script/circle_ref.py
    script/spline_ref.py
    script/joy_active.py
    script/joy_ref.py
