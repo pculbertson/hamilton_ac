@@ -3,7 +3,7 @@
     <node name="joystick" pkg="joy" type="joy_node" output="screen" />
     <node name="joy_active" pkg="hamilton_ac" type="joy_active.py" output="screen" />
     <include file="$(find vrpn_client_ros)/launch/optitrack.launch" />
-    <include file="$(find hamilton_ac)/launch/params_joy2.launch" />
+    <include file="$(find hamilton_ac)/launch/params_joy.launch" />
     <node name="ref_node" pkg="hamilton_ac" type="joy_ref.py" output="screen">
         <param name="max_lin_vel" value="0.5"/>
         <param name="max_ang_vel" value="0.5"/>
