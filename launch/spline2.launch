@@ -1,12 +1,13 @@
 <launch>
     <include file="$(find vrpn_client_ros)/launch/optitrack.launch" />
     <include file="$(find ouijabot)/launch/params.launch" />
-    <include file="$(find hamilton_ac)/launch/params_spline.launch" />
+    <include file="$(find hamilton_ac)/launch/params_spline2.launch" />
     <node name="ref_node" pkg="hamilton_ac" type="spline_ref.py" output="screen">
-        <param name="T" value="75.0"/>
+        <param name="T" value="45.0"/>
         <param name="knots_x" value="0, 1, 2, 1, 0, -1, -2, -1" />
         <param name="knots_y" value="0, 1, 0, -1, 0, 1, 0, -1" />
-        <param name="knots_th" value="0, 0.785, 1.57, 0.785, 0, -0.785, -1.57, -0.785" />
+        <param name="knots_th" value="0, 0.392, 0.785, 0.392, 0, -0.392, -0.785, -0.392" />
+        <!--<param name="knots_th" value="0, 0.785, 1.57, 0.785, 0, -0.785, -1.57, -0.785" />-->
 
         <param name="traj_scale" value="1.0" />
         <param name="pub_freq" value="10."/>

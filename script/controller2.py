@@ -39,6 +39,7 @@ class AdaptiveController():
         self.o, self.g = np.zeros(4), np.zeros(2)
         self.d, self.c = np.zeros(4), np.zeros(4)
 
+
     def getParams(self):
         self.o_mags = np.fromstring(rospy.get_param('/ac/o_mags'), sep=", ")
         self.g_mags = np.fromstring(rospy.get_param('/ac/g_mags'), sep=", ")
@@ -133,7 +134,7 @@ class AdaptiveController():
                     #calculate param derivatives
                     do = -self.G_o@np.transpose(self.Y_o(dq_r,ddq_r))@s
                     dg = -self.G_g@np.transpose(self.Y_g())@s
-                    dd = -self.G_d@np.transpose(self.Y_d())@s
+                    dd = -self.G_d@np.transpose(self.Y_d(dq_r))@s
                     dc = -self.G_c@np.transpose(self.Y_c())@s
                     #apply derivatives
                     self.o = self.o + dt*do
@@ -213,9 +214,9 @@ class AdaptiveController():
         th = self.q[2]
         return np.array([[0,0],[0,0],[-Fy*cos(th)-Fx*sin(th),-Fy*sin(th)+Fx*cos(th)]])
 
-    def Y_d(self):
+    def Y_d(self,dq_r):
         x,y,th = self.q
-        vx, vy, w = self.dq
+        vx, vy, w = dq_r
         return np.array([[vx,w*sin(th),-w*cos(th),0],
                          [vy,w*cos(th),w*sin(th),0],
                          [0,vx*sin(th)+vy*cos(th),vy*sin(th)-vx*cos(th),w]])
