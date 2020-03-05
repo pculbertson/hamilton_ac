@@ -107,14 +107,14 @@ class AdaptiveController():
             self.curr_arm = self.rot(self.q[-1])@self.moment_arm
             rix, riy = self.curr_arm[0:2]
             self.v_i = self.dq + np.array([-self.dq[-1]*riy,self.dq[-1]*rix,0.])
-            rospy.logwarn('i am actually doing this calculation')
-            rospy.logwarn(self.v_i)
+            #rospy.logwarn('i am actually doing this calculation')
+            #rospy.logwarn(self.v_i)
             self.state_time= event.current_real.to_sec()
 
             if self.active:
                 q_err = self.q - self.q_des
                 if abs(q_err[2]) > np.pi:
-                    rospy.logwarn('this was a problem')
+                    #rospy.logwarn('this was a problem')
                     if q_err[2] > 0:
                         q_err -= 2*np.pi
                     else:
