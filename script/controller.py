@@ -125,7 +125,7 @@ class AdaptiveController():
                 ddq_r = self.ddq_des - self.L@dq_err
 
                 #control law
-                self.F = (self.Y_o(dq_r,ddq_r) @ self.o + self.Y_d() @ self.d
+                self.F = (self.Y_o(dq_r,ddq_r) @ self.o + self.Y_d(dq_r) @ self.d
                     + self.Y_c() @ self.c - self.Kd @ s) #world frame
                 self.tau = self.Mhat_inv() @ self.F #world frame
 
