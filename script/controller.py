@@ -48,6 +48,9 @@ class AdaptiveController():
         self.L_lin = rospy.get_param('/ac/L_lin')
         self.L_ang = rospy.get_param('/ac/L_ang')
         self.L = np.diag([self.L_lin,self.L_lin,self.L_ang])
+        self.Kp_lin = rospy.get_param('/ac/Kp_lin')
+        self.Kp_ang = rospy.get_param('/ac/Kp_ang')
+        self.Kp = np.diag([self.Kp_lin,self.Kp_lin, self.Kp_ang])
         self.Kd_lin = rospy.get_param('/ac/Kd_lin')
         self.Kd_ang = rospy.get_param('/ac/Kd_ang')
         self.Kd = np.diag([self.Kd_lin,self.Kd_lin,self.Kd_ang])
@@ -126,7 +129,7 @@ class AdaptiveController():
 
                 #control law
                 self.F = (self.Y_o(dq_r,ddq_r) @ self.o + self.Y_d(dq_r) @ self.d
-                    + self.Y_c() @ self.c - self.Kd @ s) #world frame
+                    + self.Y_c() @ self.c - self.Kp @ q_err - self.Kd @ s) #world frame
                 self.tau = self.Mhat_inv() @ self.F #world frame
 
                 #adaptation law:
